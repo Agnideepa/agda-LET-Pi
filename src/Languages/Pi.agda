@@ -1,4 +1,4 @@
-module Pi where
+module Languages.Pi where
 
 -- Type universe -- should combinator types be separate from value types?
 

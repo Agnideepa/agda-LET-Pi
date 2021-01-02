@@ -1,4 +1,4 @@
-module MLPi where
+module Languages.MLPi where
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
@@ -203,6 +203,13 @@ shuffle = assocrˣ ! ((id × (assoclˣ ! ((swapˣ × id) ! assocrˣ))) ! assocl�
 
 shuffle-proof : ∀{b₁ b₂ b₃ b₄} → ∀{v₁ : val b₁} → ∀{v₂ : val b₂} → ∀{v₃ : val b₃} → ∀{v₄ : val b₄} → shuffle [ [ [ v₁ , v₂ ] , [ v₃ , v₄ ] ] ]ᶠ ≡ [ [ v₁ , v₃ ] , [ v₂ , v₄ ] ]
 shuffle-proof = refl
+
+-- 7.second
+second : ∀{b₁ b₂ b₃} → comb (b₁ ↝ b₂) → comb ((b₃ × b₁) ↝ (b₃ × b₂))
+second a = (arr swapˣ) ⋙ ((first a) ⋙ (arr swapˣ))
+
+second-proof : ∀{b₁ b₂ b₃} → ∀{v₁ : val b₃} → ∀{v₂ : val b₁} → ∀{a : comb (b₁ ↝ b₂)} → (second a) [ [ v₁ , v₂ ] ]ᵃ ≡ [ v₁ , a [ v₂ ]ᵃ ]
+second-proof = refl
 
 -- LEMMA 7.2 CLONING
 -- First we will construct a cloning combinator for every type b and then prove its correctness

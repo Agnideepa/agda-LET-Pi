@@ -1,4 +1,4 @@
-module PiTyped where
+module Languages.PiTyped where
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)

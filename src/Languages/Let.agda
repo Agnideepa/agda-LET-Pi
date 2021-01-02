@@ -1,31 +1,9 @@
-module Let where
+module Languages.Let where
 
 open import Data.Nat using (ℕ ; suc ; zero)
 open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_)
 open import Data.Fin using (Fin ; zero; suc)
---import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
-
-data 𝕓 : Set where
-  𝟙 : 𝕓
-  _×_ _+_ : 𝕓 → 𝕓 → 𝕓
-
--- Defining values and their types together
-
-data val : 𝕓 → Set where
-  unit : val 𝟙
-  [_,_] : ∀{b₁ b₂}
-        → val b₁
-        → val b₂
-       -----------
-        → val (b₁ × b₂)
-  left : ∀{b₁ b₂}
-        → val b₁
-       -----------
-        → val (b₁ + b₂)
-  right : ∀{b₁ b₂}
-        → val b₂
-       -----------
-        → val (b₁ + b₂)
+open import Languages.MLPi
 
 -- Now we work with environments
 
