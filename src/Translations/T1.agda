@@ -5,6 +5,9 @@ open import Data.Fin using (Fin ; zero ; suc)
 open import Data.Nat using (ℕ)
 open import Languages.MLPi
 open import Languages.Let
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_ ; refl ; sym)
+open Eq.≡-Reasoning using (begin_; step-≡; _∎)
 
 _ˣ : ∀{n : ℕ} → Vec 𝕓 n → 𝕓
 ([])ˣ = 𝟙
@@ -35,5 +38,28 @@ T₁ (fstₑ e) = (T₁ e) ⋙ fstA
 T₁ (sndₑ e) = (T₁ e) ⋙ sndA
 T₁ {Γ = γ} (ₑlet e₁ ₑin e₂)  = (clone ((γ)ˣ)) ⋙ ((second (T₁ e₁)) ⋙ (T₁ e₂))
 T₁ {Γ = γ} (ₑcase e ₑL e₁ ₑR e₂)  = ((clone ((γ)ˣ)) ⋙ ((first (T₁ e)) ⋙ ((arr distrib) ⋙ ((arr swapˣ) ⊕ (arr swapˣ))))) ⋙ (((T₁ e₁) ⊕ (T₁ e₂)) ⋙ join)
+
+-- Lemma 8.2
+
+[]-cong : ∀ {b₁ b₂} → ∀ {x₁ x₂ : val b₁} → ∀ {y₁ y₂ : val b₂} →  x₁ ≡ x₂ → y₁ ≡ y₂ → [ x₁ , y₁ ] ≡ [ x₂ , y₂ ]
+[]-cong refl refl = refl
+
+T₁-proof : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → ∀{b : 𝕓} → (ρ : Γ env) → (e : Γ ⊢exp∶ b) → (evalₑ ρ e) ≡ ((T₁ e) [ ((ρ)ₑˣ) ]ᵃ)
+T₁-proof ρ (valₑ []) = refl
+T₁-proof {b = b₁ + b₂} ρ (valₑ (left v)) rewrite sym (T₁-proof ρ (valₑ v)) | sym (leftA-proof {b₁ = b₁} {b₂ = b₂} {v = v}) = refl
+T₁-proof {b = b₁ + b₂} ρ (valₑ (right v)) rewrite sym (T₁-proof ρ (valₑ v)) | sym (rightA-proof {b₁ = b₁} {b₂ = b₂} {v = v}) = refl
+T₁-proof {Γ = γ} ρ (valₑ [ v₁ , v₂ ]) rewrite  sym (T₁-proof ρ (valₑ v₁)) | sym (T₁-proof ρ (valₑ v₂)) | (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) = []-cong (T₁-proof ρ (valₑ v₁)) (T₁-proof ρ (valₑ v₂))
+T₁-proof {b = b₁ + b₂} ρ (leftₑ e) rewrite sym (T₁-proof ρ e) | sym (leftA-proof {b₁ = b₁} {b₂ = b₂} {v = (evalₑ ρ e)}) = refl
+T₁-proof {b = b₁ + b₂} ρ (rightₑ e) rewrite sym (T₁-proof ρ e) | sym (rightA-proof {b₁ = b₁} {b₂ = b₂} {v = (evalₑ ρ e)}) = refl
+T₁-proof {Γ = γ} ρ (< e₁ , e₂ >ₑ) rewrite  sym (T₁-proof ρ e₁) | sym (T₁-proof ρ e₂) | (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) = []-cong (T₁-proof ρ e₁) (T₁-proof ρ e₂)
+--T₁-proof ρ (valₑ [ v₁ , v₂ ]) rewrite (T₁-proof ρ (valₑ v₁)) | (T₁-proof ρ (valₑ v₂)) = refl
+
+
+{-
+T₁-proof : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → ∀{b : 𝕓} → ∀{v : val b} → (ρ : Γ env) → (e : Γ ⊢exp∶ b) → {ev : (evalₑ ρ e) ≡ v} → ((T₁ e) [ ((ρ)ₑˣ) ]ᵃ) ≡ v
+T₁-proof ρ (valₑ []) {ev = eq} rewrite eq = refl
+T₁-proof ρ (valₑ [ v₁ , v₂ ]) {ev = eq} rewrite eq | sym (T₁-proof ρ (valₑ v₁)) | sym (T₁-proof ρ (valₑ v₂)) = refl
+-}
+
 
 
