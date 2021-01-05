@@ -47,18 +47,15 @@ var-proof (ρ +ₑ v) (suc n) = var-proof ρ n
 
 T₁-proof : {n : ℕ} → {Γ : Vec 𝕓 n} → {b : 𝕓} → (ρ : Γ env) → ∀(e : Γ ⊢exp∶ b) → (evalₑ ρ e) ≡ ((T₁ e) [ ((ρ)ₑˣ) ]ᵃ)
 T₁-proof ρ []ₑ = refl
-T₁-proof {b = b₁ + b₂} ρ (leftₑ e) rewrite sym (T₁-proof ρ e) | sym (leftA-proof {b₁ = b₁} {b₂ = b₂} {v = (evalₑ ρ e)}) = refl
-T₁-proof {b = b₁ + b₂} ρ (rightₑ e) rewrite sym (T₁-proof ρ e) | sym (rightA-proof {b₁ = b₁} {b₂ = b₂} {v = (evalₑ ρ e)}) = refl
+T₁-proof {b = b₁ + b₂} ρ (leftₑ e) rewrite sym (T₁-proof ρ e) = refl
+T₁-proof {b = b₁ + b₂} ρ (rightₑ e) rewrite sym (T₁-proof ρ e) = refl
 T₁-proof {Γ = γ} ρ (< e₁ , e₂ >ₑ) rewrite  sym (T₁-proof ρ e₁) | sym (T₁-proof ρ e₂) | (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) = []-cong (T₁-proof ρ e₁) (T₁-proof ρ e₂)
 T₁-proof ρ (varₑ x) = var-proof ρ x
 T₁-proof {Γ = γ} ρ (ₑlet e₁ ₑin e₂) rewrite (T₁-proof ρ e₁) | (T₁-proof (ρ +ₑ ((T₁ e₁) [ ((ρ)ₑˣ) ]ᵃ)) e₂ ) | (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) = refl
 T₁-proof ρ (fstₑ e) with (evalₑ ρ e) | inspect (evalₑ ρ) e
-...                 | ([ v₁ , v₂ ]) | [ pf ] rewrite sym (T₁-proof ρ e) | pf | sym (fstA-proof {v₁ = v₁} {v₂ = v₂}) = refl
+...                 | ([ v₁ , v₂ ]) | [ pf ] rewrite sym (T₁-proof ρ e) | pf = refl
 T₁-proof ρ (sndₑ e) with (evalₑ ρ e) | inspect (evalₑ ρ) e
-...                 | ([ v₁ , v₂ ]) | [ pf ] rewrite sym (T₁-proof ρ e) | pf | sym (sndA-proof {v₁ = v₁} {v₂ = v₂}) = refl
+...                 | ([ v₁ , v₂ ]) | [ pf ] rewrite sym (T₁-proof ρ e) | pf = refl
 T₁-proof {Γ = γ} ρ (ₑcase e ₑL e₁ ₑR e₂) with (evalₑ ρ e) | inspect (evalₑ ρ) e
 ...                                   | left v | [ pf ] rewrite (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) | (T₁-proof (ρ +ₑ v) e₁) | (trans (sym (T₁-proof ρ e)) pf) = refl
 ...                                   | right v | [ pf ] rewrite (clone-proof {b = ((γ)ˣ)} ((ρ)ₑˣ)) | (T₁-proof (ρ +ₑ v) e₂) | (trans (sym (T₁-proof ρ e)) pf) = refl
-
-
-
