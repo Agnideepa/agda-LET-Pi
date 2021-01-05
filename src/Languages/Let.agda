@@ -32,10 +32,9 @@ _[_] : ∀{n}{b}{x : Fin n} → ∀{Γ : Vec 𝕓 n} → {Γ [ x ]= b} → Γ en
 -- Typing Rules and forming expressions
 
 data _⊢exp∶_ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → 𝕓 → Set where
-  valₑ : ∀{n : ℕ}{b : 𝕓}{Γ : Vec 𝕓 n}
-        → val b
+  []ₑ : ∀{n : ℕ}{Γ : Vec 𝕓 n}
         ----------
-        → Γ ⊢exp∶ b
+        → Γ ⊢exp∶ 𝟙
   leftₑ : ∀{n : ℕ}{b₁ b₂ : 𝕓}{Γ : Vec 𝕓 n}
         → Γ ⊢exp∶ b₁
         ----------
@@ -76,7 +75,7 @@ data _⊢exp∶_ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → 𝕓 → Set where
 -- EVALUATION
 
 evalₑ : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → ∀{b : 𝕓} → Γ env → Γ ⊢exp∶ b → val b
-evalₑ _ (valₑ v) = v
+evalₑ _ []ₑ = []
 evalₑ ρ (leftₑ e) = left (evalₑ ρ e)
 evalₑ ρ (rightₑ e) = right (evalₑ ρ e)
 evalₑ ρ (varₑ x) = ρ [ x ]
