@@ -16,7 +16,7 @@ data 𝕔 : Set where
 -- Defining values and their types together
 
 data val : 𝕓 → Set where
-  unit : val 𝟙
+  [] : val 𝟙
   [_,_] : ∀{b₁ b₂}
         → val b₁
         → val b₂
@@ -32,40 +32,40 @@ data val : 𝕓 → Set where
         → val (b₁ + b₂)
 
 -- Defining combinators along with types
-data comb : 𝕔 → Set where
-  swap⁺ : ∀{b₁ b₂ : 𝕓} → comb ((b₁ + b₂) ↔ (b₂ + b₁))
-  swapˣ : ∀{b₁ b₂} → comb ((b₁ × b₂) ↔ (b₂ × b₁))
-  assocl⁺ : ∀{b₁ b₂ b₃} → comb ((b₁ + (b₂ + b₃)) ↔ ((b₁ + b₂) + b₃))
-  assocr⁺ : ∀{b₁ b₂ b₃} → comb (((b₁ + b₂) + b₃) ↔ (b₁ + (b₂ + b₃)))
-  assoclˣ : ∀{b₁ b₂ b₃} → comb ((b₁ × (b₂ × b₃)) ↔ ((b₁ × b₂) × b₃))
-  assocrˣ : ∀{b₁ b₂ b₃} → comb (((b₁ × b₂) × b₃) ↔ (b₁ × (b₂ × b₃)))
-  unite : ∀{b} → comb ((𝟙 × b) ↔ b)
-  uniti : ∀{b} → comb (b ↔ (𝟙 × b))
-  distrib : ∀{b₁ b₂ b₃} → comb (((b₁ + b₂) × b₃) ↔ ((b₁ × b₃) + (b₂ × b₃)))
-  factor : ∀{b₁ b₂ b₃} → comb (((b₁ × b₃) + (b₂ × b₃)) ↔ ((b₁ + b₂) × b₃))
-  id : ∀{b} → comb (b ↔ b)
+data comb₀ : 𝕔 → Set where
+  swap⁺ : ∀{b₁ b₂ : 𝕓} → comb₀ ((b₁ + b₂) ↔ (b₂ + b₁))
+  swapˣ : ∀{b₁ b₂} → comb₀ ((b₁ × b₂) ↔ (b₂ × b₁))
+  assocl⁺ : ∀{b₁ b₂ b₃} → comb₀ ((b₁ + (b₂ + b₃)) ↔ ((b₁ + b₂) + b₃))
+  assocr⁺ : ∀{b₁ b₂ b₃} → comb₀ (((b₁ + b₂) + b₃) ↔ (b₁ + (b₂ + b₃)))
+  assoclˣ : ∀{b₁ b₂ b₃} → comb₀ ((b₁ × (b₂ × b₃)) ↔ ((b₁ × b₂) × b₃))
+  assocrˣ : ∀{b₁ b₂ b₃} → comb₀ (((b₁ × b₂) × b₃) ↔ (b₁ × (b₂ × b₃)))
+  unite : ∀{b} → comb₀ ((𝟙 × b) ↔ b)
+  uniti : ∀{b} → comb₀ (b ↔ (𝟙 × b))
+  distrib : ∀{b₁ b₂ b₃} → comb₀ (((b₁ + b₂) × b₃) ↔ ((b₁ × b₃) + (b₂ × b₃)))
+  factor : ∀{b₁ b₂ b₃} → comb₀ (((b₁ × b₃) + (b₂ × b₃)) ↔ ((b₁ + b₂) × b₃))
+  id : ∀{b} → comb₀ (b ↔ b)
   _+_ : ∀{b₁ b₂ b₃ b₄}
-        → comb (b₁ ↔ b₂)
-        → comb (b₃ ↔ b₄)
+        → comb₀ (b₁ ↔ b₂)
+        → comb₀ (b₃ ↔ b₄)
         ----------------
-        → comb ((b₁ + b₃) ↔ (b₂ + b₄))
+        → comb₀ ((b₁ + b₃) ↔ (b₂ + b₄))
   _×_ : ∀{b₁ b₂ b₃ b₄}
-        → comb (b₁ ↔ b₂)
-        → comb (b₃ ↔ b₄)
+        → comb₀ (b₁ ↔ b₂)
+        → comb₀ (b₃ ↔ b₄)
         ----------------
-        → comb ((b₁ × b₃) ↔ (b₂ × b₄))
+        → comb₀ ((b₁ × b₃) ↔ (b₂ × b₄))
   _!_ : ∀{b₁ b₂ b₃}
-        → comb (b₁ ↔ b₂)
-        → comb (b₂ ↔ b₃)
+        → comb₀ (b₁ ↔ b₂)
+        → comb₀ (b₂ ↔ b₃)
         ----------------
-        → comb (b₁ ↔ b₃)
+        → comb₀ (b₁ ↔ b₃)
   symm : ∀{b₁ b₂}
-        → comb (b₁ ↔ b₂)
+        → comb₀ (b₁ ↔ b₂)
         ----------------
-        → comb (b₂ ↔ b₁)
+        → comb₀ (b₂ ↔ b₁)
   
   
-_† : ∀{b b' : 𝕓} → comb (b ↔ b') → comb (b' ↔ b)
+_† : ∀{b b' : 𝕓} → comb₀ (b ↔ b') → comb₀ (b' ↔ b)
 swap⁺ † = swap⁺
 assoclˣ † = assocrˣ
 assocrˣ † = assoclˣ
@@ -85,8 +85,8 @@ swapˣ † = swapˣ
 
 -- OPERATIONAL SEMANTICS - BOTH BACKWARD AND FORWARD DIRECTIONS --
 
-_[_]ᶠ : ∀ {b b'} → comb (b ↔ b') → val b → val b'
-_[_]ᵇ : ∀ {b b'} → comb (b ↔ b') → val b' → val b
+_[_]ᶠ : ∀ {b b'} → comb₀ (b ↔ b') → val b → val b'
+_[_]ᵇ : ∀ {b b'} → comb₀ (b ↔ b') → val b' → val b
 
 swap⁺ [ left v ]ᶠ = right v
 swap⁺ [ right v ]ᶠ = left v
@@ -98,7 +98,7 @@ assocr⁺ [ left (left v₁) ]ᶠ = left v₁
 assocr⁺ [ left (right v₂) ]ᶠ = right (left v₂)
 assocr⁺ [ right v₃ ]ᶠ = right (right v₃)
 unite [ ([ unit , v ]) ]ᶠ = v
-uniti [ v ]ᶠ = [ unit , v ]
+uniti [ v ]ᶠ = [ [] , v ]
 assoclˣ [ ([ v₁ , [ v₂ , v₃ ] ]) ]ᶠ = [ [ v₁ , v₂ ] , v₃ ]
 assocrˣ [ ([ [ v₁ , v₂ ] , v₃ ]) ]ᶠ = [ v₁ , [ v₂ , v₃ ] ]
 distrib [ ([ left v₁ , v₃ ]) ]ᶠ = left ([ v₁ , v₃ ])
@@ -122,7 +122,7 @@ assocl⁺ [ left (left v₁) ]ᵇ = left v₁
 assocl⁺ [ left (right v₂) ]ᵇ = right (left v₂)
 assocl⁺ [ right v₃ ]ᵇ = right (right v₃)
 uniti [ ([ unit , v ]) ]ᵇ = v
-unite [ v ]ᵇ = [ unit , v ]
+unite [ v ]ᵇ = [ [] , v ]
 assocrˣ [ ([ v₁ , [ v₂ , v₃ ] ]) ]ᵇ = [ [ v₁ , v₂ ] , v₃ ]
 assoclˣ [ ([ [ v₁ , v₂ ] , v₃ ]) ]ᵇ = [ v₁ , [ v₂ , v₃ ] ]
 factor [ ([ left v₁ , v₃ ]) ]ᵇ = left ([ v₁ , v₃ ])
@@ -145,10 +145,10 @@ id [ v ]ᵇ = v
 
 --IDEAS THAT DID NOT WORK
 
-{-data _on_↦_ : ∀ {b b'} → comb (b ↔ b') → val b → val b' → Set where
+{-data _on_↦_ : ∀ {b b'} → comb₀ (b ↔ b') → val b → val b' → Set where
   swap⁺left : ∀{b₁} → ∀ {v : val b₁} → swap⁺ on (left v) ↦ (right v)
   swap⁺right : ∀{b₂} → ∀ {v : val b₂} → swap⁺ on (right v) ↦ (left v)
-  _×_ : ∀ {b₁ b₂ b₃ b₄}{v₁ v₂ v₃ v₄} → ∀ {c₁ : comb (b₁ ↔ b₃)} → ∀ {c₂ : comb (b₂ ↔ b₄)}  
+  _×_ : ∀ {b₁ b₂ b₃ b₄}{v₁ v₂ v₃ v₄} → ∀ {c₁ : comb₀ (b₁ ↔ b₃)} → ∀ {c₂ : comb₀ (b₂ ↔ b₄)}  
        → c₁ on v₁ ↦ v₃
        → c₂ on v₂ ↦ v₄
        --------------
@@ -162,14 +162,14 @@ id [ v ]ᵇ = v
 -}
 
 {- postulate
-  comb-extensionality : ∀ {b b'} (c₁ c₂ : comb (b ↔ b'))
+  comb-extensionality : ∀ {b b'} (c₁ c₂ : comb₀ (b ↔ b'))
     → ((v : val b) → (v' : val b') → c₁ [ v ]ᶠ ≡ v' → c₂ [ v ]ᶠ ≡ v' )
     --→ (∀(v v') → c₂ [ v ]ᶠ ≡ v' → c₁ [ v ]ᶠ ≡ v' )
       -----------------------
     → c₁ ≡ c₂
-symm=c† : ∀ {b b'} (c : comb (b ↔ b')) → (symm c) ≡ (c †)
+symm=c† : ∀ {b b'} (c : comb₀ (b ↔ b')) → (symm c) ≡ (c †)
 symm=c† c = comb-extensionality (symm c) (c †) (λ{v v' pr → lemma-3 c v' (lemma-2 c v pr)})
-adj-of-adj-is-id : ∀ {b b'} → ∀ (c : comb (b ↔ b')) → ((c †) †) ≡ c
+adj-of-adj-is-id : ∀ {b b'} → ∀ (c : comb₀ (b ↔ b')) → ((c †) †) ≡ c
 adj-of-adj-is-id swap⁺ = refl
 adj-of-adj-is-id assoclˣ = refl
 adj-of-adj-is-id assocrˣ = refl
@@ -189,8 +189,8 @@ adj-of-adj-is-id (symm c) = sym (symm=c† c)
 
 -- FIRST WE PROVE THAT FORWARD AND BACKWARD EVALUATION ARE INVERSES OF EACH OTHER
 
-lemma-1 : ∀ {b b'} → ∀(c : comb (b ↔ b')) → ∀ (v : val b) → c [ c [ v ]ᶠ ]ᵇ ≡ v
-lemma-2 : ∀ {b b'} → ∀(c : comb (b ↔ b')) → ∀ (v : val b') → c [ c [ v ]ᵇ ]ᶠ ≡ v
+lemma-1 : ∀ {b b'} → ∀(c : comb₀ (b ↔ b')) → ∀ (v : val b) → c [ c [ v ]ᶠ ]ᵇ ≡ v
+lemma-2 : ∀ {b b'} → ∀(c : comb₀ (b ↔ b')) → ∀ (v : val b') → c [ c [ v ]ᵇ ]ᶠ ≡ v
 
 lemma-1 swap⁺ (left v) = refl
 lemma-1 swap⁺ (right v) = refl
@@ -201,7 +201,7 @@ lemma-1 assocl⁺ (right (right v₃)) = refl
 lemma-1 assocr⁺ (left (left v₁)) = refl
 lemma-1 assocr⁺ (left (right v₂)) = refl
 lemma-1 assocr⁺ (right v₃) = refl
-lemma-1 unite ([ unit , v ]) = refl
+lemma-1 unite ([ [] , v ]) = refl
 lemma-1 uniti v = refl
 lemma-1 assoclˣ ([ v₁ , [ v₂ , v₃ ] ]) = refl
 lemma-1 assocrˣ ([ [ v₁ , v₂ ] , v₃ ]) = refl
@@ -226,7 +226,7 @@ lemma-2 assocr⁺ (right (right v₃)) = refl
 lemma-2 assocl⁺ (left (left v₁)) = refl
 lemma-2 assocl⁺ (left (right v₂)) = refl
 lemma-2 assocl⁺ (right v₃) = refl
-lemma-2 uniti ([ unit , v ]) = refl
+lemma-2 uniti ([ [] , v ]) = refl
 lemma-2 unite v = refl
 lemma-2 assocrˣ ([ v₁ , [ v₂ , v₃ ] ]) = refl
 lemma-2 assoclˣ ([ [ v₁ , v₂ ] , v₃ ]) = refl
@@ -244,7 +244,7 @@ lemma-2 (symm c) v = lemma-1 c v
 
 -- THIS IS PROPOSITION 3.2
 
-lemma-3 : ∀ {b b'} → ∀ (c : comb (b ↔ b')) → ∀ (v : val b) → (c †) [ c [ v ]ᶠ ]ᶠ ≡ v
+lemma-3 : ∀ {b b'} → ∀ (c : comb₀ (b ↔ b')) → ∀ (v : val b) → (c †) [ c [ v ]ᶠ ]ᶠ ≡ v
 
 lemma-3 swap⁺ (left v) = refl
 lemma-3 swap⁺ (right v) = refl
@@ -255,7 +255,7 @@ lemma-3 assocl⁺ (right (right v₃)) = refl
 lemma-3 assocr⁺ (left (left v₁)) = refl
 lemma-3 assocr⁺ (left (right v₂)) = refl
 lemma-3 assocr⁺ (right v₃) = refl
-lemma-3 unite ([ unit , v ]) = refl
+lemma-3 unite ([ [] , v ]) = refl
 lemma-3 uniti v = refl
 lemma-3 assoclˣ ([ v₁ , [ v₂ , v₃ ] ]) = refl
 lemma-3 assocrˣ ([ [ v₁ , v₂ ] , v₃ ]) = refl

@@ -6,6 +6,7 @@ open import Data.Nat using (ℕ)
 open import Languages.MLPi
 open import Languages.Let
 open import Relation.Binary.PropositionalEquality using (_≡_ ; refl ; sym ; cong ; inspect ; [_] ; trans)
+open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; _[_]ᶠ ; swapˣ ; distrib ; id )
 
 _ˣ : ∀{n : ℕ} → Vec 𝕓 n → 𝕓
 ([])ˣ = 𝟙

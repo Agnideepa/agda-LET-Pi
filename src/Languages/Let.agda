@@ -4,6 +4,7 @@ open import Data.Nat using (ℕ ; suc ; zero)
 open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_)
 open import Data.Fin using (Fin ; zero; suc)
 open import Languages.MLPi
+open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right)
 
 -- Now we work with environments
 

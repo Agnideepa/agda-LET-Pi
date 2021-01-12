@@ -3,65 +3,16 @@ module Languages.MLPi where
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
 open Eq.≡-Reasoning using (begin_; step-≡; _∎)
+open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; comb₀ ; 𝕔 ; _↔_ ; _[_]ᶠ ;
+                                     swap⁺ ; swapˣ ; assoclˣ ; assocrˣ ; unite ; uniti ; distrib ; factor ; id ; _!_)
 
--- We do not need separate definitions of values and value types
-
-data 𝕓 : Set where
-  𝟙 : 𝕓
-  _×_ _+_ : 𝕓 → 𝕓 → 𝕓
-
-data 𝕔 : Set where
-  _↔_ : 𝕓 → 𝕓 → 𝕔
-  _↝_ : 𝕓 → 𝕓 → 𝕔
-
--- Defining values and their types together
-
-data val : 𝕓 → Set where
-  [] : val 𝟙
-  [_,_] : ∀{b₁ b₂}
-        → val b₁
-        → val b₂
-       -----------
-        → val (b₁ × b₂)
-  left : ∀{b₁ b₂}
-        → val b₁
-       -----------
-        → val (b₁ + b₂)
-  right : ∀{b₁ b₂}
-        → val b₂
-       -----------
-        → val (b₁ + b₂)
+data ML𝕔 : Set where
+  _↝_ : 𝕓 → 𝕓 → ML𝕔
 
 -- Defining combinators along with types
-data comb : 𝕔 → Set where
-  swap⁺ : ∀{b₁ b₂ : 𝕓} → comb ((b₁ + b₂) ↔ (b₂ + b₁))
-  swapˣ : ∀{b₁ b₂} → comb ((b₁ × b₂) ↔ (b₂ × b₁))
-  assocl⁺ : ∀{b₁ b₂ b₃} → comb ((b₁ + (b₂ + b₃)) ↔ ((b₁ + b₂) + b₃))
-  assocr⁺ : ∀{b₁ b₂ b₃} → comb (((b₁ + b₂) + b₃) ↔ (b₁ + (b₂ + b₃)))
-  assoclˣ : ∀{b₁ b₂ b₃} → comb ((b₁ × (b₂ × b₃)) ↔ ((b₁ × b₂) × b₃))
-  assocrˣ : ∀{b₁ b₂ b₃} → comb (((b₁ × b₂) × b₃) ↔ (b₁ × (b₂ × b₃)))
-  unite : ∀{b} → comb ((𝟙 × b) ↔ b)
-  uniti : ∀{b} → comb (b ↔ (𝟙 × b))
-  distrib : ∀{b₁ b₂ b₃} → comb (((b₁ + b₂) × b₃) ↔ ((b₁ × b₃) + (b₂ × b₃)))
-  factor : ∀{b₁ b₂ b₃} → comb (((b₁ × b₃) + (b₂ × b₃)) ↔ ((b₁ + b₂) × b₃))
-  id : ∀{b} → comb (b ↔ b)
-  _+_ : ∀{b₁ b₂ b₃ b₄}
-        → comb (b₁ ↔ b₂)
-        → comb (b₃ ↔ b₄)
-        ----------------
-        → comb ((b₁ + b₃) ↔ (b₂ + b₄))
-  _×_ : ∀{b₁ b₂ b₃ b₄}
-        → comb (b₁ ↔ b₂)
-        → comb (b₃ ↔ b₄)
-        ----------------
-        → comb ((b₁ × b₃) ↔ (b₂ × b₄))
-  _!_ : ∀{b₁ b₂ b₃}
-        → comb (b₁ ↔ b₂)
-        → comb (b₂ ↔ b₃)
-        ----------------
-        → comb (b₁ ↔ b₃)
+data comb : ML𝕔 → Set where
   arr : ∀{b₁ b₂}
-        → comb (b₁ ↔ b₂)
+        → comb₀ (b₁ ↔ b₂)
         ----------------
         → comb (b₁ ↝ b₂)
   _⋙_ : ∀{b₁ b₂ b₃}
@@ -95,32 +46,7 @@ data comb : 𝕔 → Set where
            → comb (b ↝ 𝟙)
 
 
--- OPERATIONAL SEMANTICS - SEPARATE FOR ARROW CONSTRUCTS
-
-_[_]ᶠ : ∀ {b b'} → comb (b ↔ b') → val b → val b'
-
-swap⁺ [ left v ]ᶠ = right v
-swap⁺ [ right v ]ᶠ = left v
-swapˣ [ ([ v₁ , v₂ ]) ]ᶠ = [ v₂ , v₁ ]
-assocl⁺ [ left v₁ ]ᶠ = left (left v₁)
-assocl⁺ [ right (left v₂) ]ᶠ = left (right v₂)
-assocl⁺ [ right (right v₃) ]ᶠ = right v₃
-assocr⁺ [ left (left v₁) ]ᶠ = left v₁
-assocr⁺ [ left (right v₂) ]ᶠ = right (left v₂)
-assocr⁺ [ right v₃ ]ᶠ = right (right v₃)
-unite [ ([ [] , v ]) ]ᶠ = v
-uniti [ v ]ᶠ = [ [] , v ]
-assoclˣ [ ([ v₁ , [ v₂ , v₃ ] ]) ]ᶠ = [ [ v₁ , v₂ ] , v₃ ]
-assocrˣ [ ([ [ v₁ , v₂ ] , v₃ ]) ]ᶠ = [ v₁ , [ v₂ , v₃ ] ]
-distrib [ ([ left v₁ , v₃ ]) ]ᶠ = left ([ v₁ , v₃ ])
-distrib [ ([ right v₂ , v₃ ]) ]ᶠ = right ([ v₂ , v₃ ])
-factor [ left ([ v₁ , v₃ ]) ]ᶠ = [ left v₁ , v₃ ]
-factor [ right ([ v₂ , v₃ ]) ]ᶠ = [ right v₂ , v₃ ]
-id [ v ]ᶠ = v
-(c₁ + c₂) [ left v₁ ]ᶠ = left (c₁ [ v₁ ]ᶠ)
-(c₁ + c₂) [ right v₂ ]ᶠ = right (c₂ [ v₂ ]ᶠ)
-(c₁ × c₂) [ ([ v₁ , v₂ ]) ]ᶠ = [ (c₁ [ v₁ ]ᶠ) , (c₂ [ v₂ ]ᶠ) ]
-(c₁ ! c₂) [ v ]ᶠ = c₂ [ (c₁ [ v ]ᶠ) ]ᶠ
+-- OPERATIONAL SEMANTICS
 
 -- Defining φ which will return a default value of a certain type
 
@@ -165,7 +91,7 @@ sndA-proof = refl
 
 -- 3.leftA - injecting values in a larger type
 
-leftSwap : ∀{b₁ b₂} → comb (((b₁ + b₂) × b₁) ↔ ((b₁ + b₂) × b₁))
+leftSwap : ∀{b₁ b₂} → comb₀ (((b₁ + b₂) × b₁) ↔ ((b₁ + b₂) × b₁))
 leftSwap = distrib ! ((swapˣ + id) ! factor)
 
 -- For leftA, only really need b₂ in some occasions
@@ -178,7 +104,7 @@ leftA-proof = refl
 
 -- 4.rightA - analogous to leftA
 
-rightSwap : ∀{b₁ b₂} → comb (((b₁ + b₂) × b₂) ↔ ((b₁ + b₂) × b₂))
+rightSwap : ∀{b₁ b₂} → comb₀ (((b₁ + b₂) × b₂) ↔ ((b₁ + b₂) × b₂))
 rightSwap = distrib ! ((id + swapˣ) ! factor)
 
 rightA : ∀{b₁ b₂} → comb (b₂ ↝ (b₁ + b₂))
@@ -198,7 +124,7 @@ join-proof-right : ∀{b} → ∀{v : val b} → join [ right v ]ᵃ ≡ v
 join-proof-right = refl
 
 -- 6.shuffle - required to clone pairs
-shuffle : ∀{b₁ b₂ b₃ b₄} → comb (((b₁ × b₂) × (b₃ × b₄)) ↔ ((b₁ × b₃) × (b₂ × b₄)))
+shuffle : ∀{b₁ b₂ b₃ b₄} → comb₀ (((b₁ × b₂) × (b₃ × b₄)) ↔ ((b₁ × b₃) × (b₂ × b₄)))
 shuffle = assocrˣ ! ((id × (assoclˣ ! ((swapˣ × id) ! assocrˣ))) ! assoclˣ)
 
 shuffle-proof : ∀{b₁ b₂ b₃ b₄} → ∀{v₁ : val b₁} → ∀{v₂ : val b₂} → ∀{v₃ : val b₃} → ∀{v₄ : val b₄} → shuffle [ [ [ v₁ , v₂ ] , [ v₃ , v₄ ] ] ]ᶠ ≡ [ [ v₁ , v₃ ] , [ v₂ , v₄ ] ]
