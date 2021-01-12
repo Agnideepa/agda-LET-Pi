@@ -2,6 +2,8 @@ module Translations.T2 where
 
 open import Languages.MLPi
 open import Languages.PiTyped
+open import Relation.Binary.PropositionalEquality using (_≡_ ; refl)
+open import Data.Product using (Σ ; _,_)
 
 heap : ∀{b₁ b₂} → comb (b₁ ↝ b₂) → 𝕓
 garbage : ∀{b₁ b₂} → comb (b₁ ↝ b₂) → 𝕓
@@ -34,4 +36,22 @@ T₂ (erase) = swapˣ
 T₂ (left a) = ((swapˣ ! distrib) ! (((assoclˣ ! (((swapˣ ! (T₂ a)) × id) ! assocrˣ)) ! ((id × (assoclˣ ! (((swapˣ ! leftSwap) × id) ! (assocrˣ ! swapˣ)))) ! assoclˣ)) + ((assoclˣ ! ((swapˣ × id) ! assocrˣ)) ! ((id × ((assoclˣ ! ((swapˣ × id) ! assocrˣ)) ! (id × (swapˣ ! (leftSwap ! (swap⁺ × id)))))) ! (assoclˣ ! ((id × swapˣ) ! assoclˣ)))))) ! factor
 T₂ (a₁ ⊕ a₂) = ((swapˣ ! distrib) ! (((((assoclˣ ! ((assoclˣ ! ((swapˣ ! (T₂ a₁)) × id)) × id)) ! ((assocrˣ ! assocrˣ) ! (id × (assoclˣ ! ((swapˣ × id) ! assocrˣ))))) ! (id × (id × ((assoclˣ ! ((swapˣ ! leftSwap) × id)) ! (assocrˣ ! swapˣ))))) ! (assoclˣ ! assoclˣ)) + (((assoclˣ ! ((((id × swapˣ) ! assoclˣ) ! ((swapˣ ! (T₂ a₂)) × id)) × id)) ! (assocrˣ ! assocrˣ)) ! ((id × ((assoclˣ ! ((id × swapˣ) ! shuffle)) ! ((((swapˣ ! leftSwap) ! (swap⁺ × id)) × id) ! (swapˣ ! (id × swapˣ))))) ! (assoclˣ ! assoclˣ))))) ! factor
 
+-- Lemma 9.1 - T₂ preserves semantics
 
+T₂-proof : ∀{b₁ b₂} → (c : comb (b₁ ↝ b₂)) → (v : val b₁) → Σ (val (garbage(c))) (λ g' → ((T₂ c) [ ([ φ(heap(c)) , v ]) ]ᶠ) ≡ ([ g' , (c [ v ]ᵃ) ]))
+T₂-proof (arr c) v = [] , refl
+T₂-proof (create _) [] = [] , refl
+T₂-proof (erase) v = v , refl
+T₂-proof (a₁ ⊗ a₂) ([ v₁ , v₂ ]) with (T₂-proof a₁ v₁) | (T₂-proof a₂ v₂)
+...                                 | (g₁ , pf₁) | (g₂ , pf₂) rewrite pf₁ | pf₂ = ([ g₁ , g₂ ]) , refl
+T₂-proof (first a) ([ v ,  v' ]) with (T₂-proof a v)
+...                                 | (g , pf) rewrite pf = g , refl
+T₂-proof (a₁ ⋙ a₂) v with (T₂-proof a₁ v) | (T₂-proof a₂ (a₁ [ v ]ᵃ))
+...                     | (g₁ , pf₁) | (g₂ , pf₂) rewrite pf₁ | pf₂ = ([ g₂ , g₁ ]) , refl
+T₂-proof {b₂ = b' + b''} (left a) (left v) with (T₂-proof a v)
+...                             | (g , pf) rewrite pf = (left ([ g , ([ φ(b') , (left(φ(b'')))]) ])) , refl
+T₂-proof {b₂ = b' + b''} (left a) (right v) = (right ([ ([ φ(heap(a)) , left(φ(b')) ]) , φ(b'') ])) , refl
+T₂-proof {b₂ = b' + b''} (a₁ ⊕ a₂) (left v₁) with (T₂-proof a₁ v₁)
+...                                             | (g₁ , pf₁) rewrite pf₁ = (left ([ ([ g₁ , φ(heap(a₂)) ]) , ([ φ(b') , (left (φ(b''))) ]) ])) , refl
+T₂-proof {b₂ = b' + b''} (a₁ ⊕ a₂) (right v₂) with (T₂-proof a₂ v₂)
+...                                             | (g₂ , pf₂) rewrite pf₂ = (right ([ ([ g₂ , ([ φ(heap(a₁)) , (left (φ(b'))) ]) ]) , φ(b'') ])) , refl
