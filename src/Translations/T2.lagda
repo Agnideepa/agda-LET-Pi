@@ -1,3 +1,4 @@
+\begin{code}
 module Translations.T2 where
 
 open import Languages.MLPi
@@ -37,8 +38,19 @@ T₂ (left a) = ((swapˣ ! distrib) ! (((assoclˣ ! (((swapˣ ! (T₂ a)) × id)
 T₂ (a₁ ⊕ a₂) = ((swapˣ ! distrib) ! (((((assoclˣ ! ((assoclˣ ! ((swapˣ ! (T₂ a₁)) × id)) × id)) ! ((assocrˣ ! assocrˣ) ! (id × (assoclˣ ! ((swapˣ × id) ! assocrˣ))))) ! (id × (id × ((assoclˣ ! ((swapˣ ! leftSwap) × id)) ! (assocrˣ ! swapˣ))))) ! (assoclˣ ! assoclˣ)) + (((assoclˣ ! ((((id × swapˣ) ! assoclˣ) ! ((swapˣ ! (T₂ a₂)) × id)) × id)) ! (assocrˣ ! assocrˣ)) ! ((id × ((assoclˣ ! ((id × swapˣ) ! shuffle)) ! ((((swapˣ ! leftSwap) ! (swap⁺ × id)) × id) ! (swapˣ ! (id × swapˣ))))) ! (assoclˣ ! assoclˣ))))) ! factor
 
 -- Lemma 9.1 - T₂ preserves semantics
+\end{code}
 
-T₂-proof : ∀{b₁ b₂} → (c : comb (b₁ ↝ b₂)) → (v : val b₁) → Σ (val (garbage(c))) (λ g' → ((T₂ c) [ ([ φ(heap(c)) , v ]) ]ᶠ) ≡ ([ g' , (c [ v ]ᵃ) ]))
+%<*T2-proof>
+\begin{code}
+
+T₂-proof : ∀{b₁ b₂}(c : comb (b₁ ↝ b₂))(v : val b₁) →
+           Σ (val (garbage(c))) (λ g' →
+           ((T₂ c) [ ([ φ(heap(c)) , v ]) ]ᶠ) ≡ ([ g' , (c [ v ]ᵃ) ]))
+
+\end{code}
+%</T2-proof>
+
+\begin{code}
 T₂-proof (arr c) v = [] , refl
 T₂-proof (create _) [] = [] , refl
 T₂-proof (erase) v = v , refl
@@ -55,3 +67,4 @@ T₂-proof {b₂ = b' + b''} (a₁ ⊕ a₂) (left v₁) with (T₂-proof a₁ v
 ...                                             | (g₁ , pf₁) rewrite pf₁ = (left ([ ([ g₁ , φ(heap(a₂)) ]) , ([ φ(b') , (left (φ(b''))) ]) ])) , refl
 T₂-proof {b₂ = b' + b''} (a₁ ⊕ a₂) (right v₂) with (T₂-proof a₂ v₂)
 ...                                             | (g₂ , pf₂) rewrite pf₂ = (right ([ ([ g₂ , ([ φ(heap(a₁)) , (left (φ(b'))) ]) ]) , φ(b'') ])) , refl
+\end{code}

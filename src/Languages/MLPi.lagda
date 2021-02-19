@@ -1,3 +1,4 @@
+\begin{code}
 module Languages.MLPi where
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -57,7 +58,16 @@ data comb : ML𝕔 → Set where
 
 -- Operational semantics for arrow combinators
 
+\end{code}
+
+%<*mlpi-eval>
+\begin{code}
+
 _[_]ᵃ : ∀ {b b'} → comb (b ↝ b') → val b → val b'
+\end{code}
+%</mlpi-eval>
+
+\begin{code}
 (arr c) [ v ]ᵃ = c [ v ]ᶠ
 (a₁ ⋙ a₂) [ v ]ᵃ = a₂ [ a₁ [ v ]ᵃ ]ᵃ
 (a₁ ⊕ a₂) [ left v₁ ]ᵃ = left (a₁ [ v₁ ]ᵃ)
@@ -74,7 +84,7 @@ erase [ v ]ᵃ = []
 -- 1.FST A
 
 fstA : ∀{b₁ b₂} → comb ((b₁ × b₂) ↝ b₁)
-fstA = (((arr swapˣ) ⋙ (first erase)) ⋙ (arr swapˣ)) ⋙ (arr (swapˣ ! unite))
+fstA = (((arr swapˣ) ⋙ (first erase))) ⋙ (arr unite)
 
 --Proving that it really does erase the 2nd component
 fstA-proof : ∀{b₁ b₂} → ∀{v₁ : val b₁} → ∀{v₂ : val b₂} → fstA [ [ v₁ , v₂ ] ]ᵃ ≡ v₁
@@ -150,4 +160,5 @@ clone-proof [] = refl
 clone-proof [ v₁ , v₂ ] rewrite (clone-proof v₁) | (clone-proof v₂) = refl
 clone-proof (left v) rewrite (clone-proof v) = refl
 clone-proof (right v) rewrite (clone-proof v) = refl
+\end{code}
 
