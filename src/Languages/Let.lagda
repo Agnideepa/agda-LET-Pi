@@ -2,10 +2,12 @@
 module Languages.Let where
 
 open import Data.Nat using (ℕ ; suc ; zero)
-open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_ ; lookup)
+open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_ ; here ; there ; lookup)
 open import Data.Fin using (Fin; zero; suc)
 open import Languages.MLPi
 open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
 
 -- Now we work with environments
 \end{code}
@@ -25,19 +27,9 @@ data _env : ∀{n : ℕ} → (Vec 𝕓 n) → Set where
 
 \begin{code}
 
-Vec-elem : ∀{n : ℕ} → Vec 𝕓 n → Fin n → 𝕓
-Vec-elem (b ∷ l) zero = b
-Vec-elem (b ∷ l) (suc n) = Vec-elem l n
-
-_[_] : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → Γ env → (x : Fin n) → val (lookup Γ x)
-(ρ +ₑ v) [ zero ] = v
-(ρ +ₑ _) [ suc m ] = ρ [ m ]
-
-{- Failed attempt at shorter impl
-_[_] : ∀{n}{b}{x : Fin n} → ∀{Γ : Vec 𝕓 n} → {Γ [ x ]= b} → Γ env → (x) → val b
-(ρ +ₑ v) [ zero ] = v
-(ρ +ₑ _) [ suc m ] = ρ [ m ]
--}
+_[_] : ∀{n : ℕ}{Γ : Vec 𝕓 n}{x : Fin n}{b : 𝕓} → Γ env → Γ [ x ]= b → val b
+(ρ +ₑ v) [ here ] = v
+(ρ +ₑ _) [ there m ] = ρ [ m ]
 
 -- Typing Rules and forming expressions
 
@@ -57,10 +49,10 @@ data _⊢exp∶_ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → 𝕓 → Set where
 
 %<*debruijn>
 \begin{code}
-  varₑ : ∀{n : ℕ}{Γ : Vec 𝕓 n}
-        → (x : Fin n)
+  varₑ : ∀{n : ℕ}{Γ : Vec 𝕓 n}{x : Fin n}{b : 𝕓}
+        → Γ [ x ]= b
         ----------
-        → Γ ⊢exp∶ (lookup Γ x)
+        → Γ ⊢exp∶ b
 \end{code}
 %</debruijn>
 
@@ -144,8 +136,7 @@ evalₑ ρ (⟨ e₁ , e₂ ⟩ₑ) = [ (evalₑ ρ e₁) , (evalₑ ρ e₂) ]
 evalₑ ρ (ₑcase e ₑL e₁ ₑR e₂) with (evalₑ ρ e)
 ...                 | (left v) = evalₑ (ρ +ₑ v) e₁
 ...                 | (right v) = evalₑ (ρ +ₑ v) e₂
-\end{code}
 
-        
+\end{code}
 
 

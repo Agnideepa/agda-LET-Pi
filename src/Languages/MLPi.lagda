@@ -4,8 +4,8 @@ module Languages.MLPi where
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
 open Eq.≡-Reasoning using (begin_; step-≡; _∎)
-open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; comb₀ ; 𝕔 ; _↔_ ; _[_]ᶠ ;
-                                     swap⁺ ; swapˣ ; assoclˣ ; assocrˣ ; unite ; uniti ; distrib ; factor ; id ; _!_)
+open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; _↔_ ; _[_]ᶠ ;
+                                     swap⁺ ; swapˣ ; assoclˣ ; assocrˣ ; unite ; uniti ; distrib ; factor ; id ; _>_)
 
 data ML𝕔 : Set where
   _↝_ : 𝕓 → 𝕓 → ML𝕔
@@ -13,7 +13,7 @@ data ML𝕔 : Set where
 -- Defining combinators along with types
 data comb : ML𝕔 → Set where
   arr : ∀{b₁ b₂}
-        → comb₀ (b₁ ↔ b₂)
+        → b₁ ↔ b₂
         ----------------
         → comb (b₁ ↝ b₂)
   _⋙_ : ∀{b₁ b₂ b₃}
@@ -101,8 +101,8 @@ sndA-proof = refl
 
 -- 3.leftA - injecting values in a larger type
 
-leftSwap : ∀{b₁ b₂} → comb₀ (((b₁ + b₂) × b₁) ↔ ((b₁ + b₂) × b₁))
-leftSwap = distrib ! ((swapˣ + id) ! factor)
+leftSwap : ∀{b₁ b₂} → ((b₁ + b₂) × b₁) ↔ ((b₁ + b₂) × b₁)
+leftSwap = distrib > ((swapˣ + id) > factor)
 
 -- For leftA, only really need b₂ in some occasions
 leftA : ∀{b₁ b₂} → comb (b₁ ↝ (b₁ + b₂))
@@ -114,8 +114,8 @@ leftA-proof = refl
 
 -- 4.rightA - analogous to leftA
 
-rightSwap : ∀{b₁ b₂} → comb₀ (((b₁ + b₂) × b₂) ↔ ((b₁ + b₂) × b₂))
-rightSwap = distrib ! ((id + swapˣ) ! factor)
+rightSwap : ∀{b₁ b₂} → ((b₁ + b₂) × b₂) ↔ ((b₁ + b₂) × b₂)
+rightSwap = distrib > ((id + swapˣ) > factor)
 
 rightA : ∀{b₁ b₂} → comb (b₂ ↝ (b₁ + b₂))
 rightA {b₁} {b₂} = (((arr uniti) ⋙ (first (create (b₂ + b₁)))) ⋙ ((first (arr swap⁺)) ⋙ (arr rightSwap))) ⋙ fstA
@@ -134,8 +134,8 @@ join-proof-right : ∀{b} → ∀{v : val b} → join [ right v ]ᵃ ≡ v
 join-proof-right = refl
 
 -- 6.shuffle - required to clone pairs
-shuffle : ∀{b₁ b₂ b₃ b₄} → comb₀ (((b₁ × b₂) × (b₃ × b₄)) ↔ ((b₁ × b₃) × (b₂ × b₄)))
-shuffle = assocrˣ ! ((id × (assoclˣ ! ((swapˣ × id) ! assocrˣ))) ! assoclˣ)
+shuffle : ∀{b₁ b₂ b₃ b₄} → ((b₁ × b₂) × (b₃ × b₄)) ↔ ((b₁ × b₃) × (b₂ × b₄))
+shuffle = assocrˣ > ((id × (assoclˣ > ((swapˣ × id) > assocrˣ))) > assoclˣ)
 
 shuffle-proof : ∀{b₁ b₂ b₃ b₄} → ∀{v₁ : val b₁} → ∀{v₂ : val b₂} → ∀{v₃ : val b₃} → ∀{v₄ : val b₄} → shuffle [ [ [ v₁ , v₂ ] , [ v₃ , v₄ ] ] ]ᶠ ≡ [ [ v₁ , v₃ ] , [ v₂ , v₄ ] ]
 shuffle-proof = refl
@@ -154,11 +154,18 @@ clone : ∀(b : 𝕓) → (comb (b ↝ (b × b)))
 clone 𝟙 = arr uniti
 clone (b₁ × b₂) = ((clone b₁) ⊗ (clone b₂)) ⋙ (arr shuffle)
 clone (b₁ + b₂) = (((clone b₁) ⋙ ((arr id) ⊗ leftA)) ⊕ ((clone b₂) ⋙ ((arr id) ⊗ rightA))) ⋙ (arr factor)
+\end{code}
 
+
+\end{code}
+
+%<*clone-proof>
+\begin{code}
 clone-proof : ∀{b} → ∀(v : val b) → (clone b) [ v ]ᵃ ≡ [ v , v ]
 clone-proof [] = refl
 clone-proof [ v₁ , v₂ ] rewrite (clone-proof v₁) | (clone-proof v₂) = refl
 clone-proof (left v) rewrite (clone-proof v) = refl
 clone-proof (right v) rewrite (clone-proof v) = refl
 \end{code}
+%</clone-proof>
 

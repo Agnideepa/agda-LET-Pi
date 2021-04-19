@@ -1,7 +1,7 @@
 \begin{code}
 module Translations.T1 where
 
-open import Data.Vec using (Vec ; _∷_ ; [] ; lookup)
+open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_ ; here ; there ; lookup)
 open import Data.Fin using (Fin ; zero ; suc)
 open import Data.Nat using (ℕ)
 open import Languages.MLPi
@@ -40,13 +40,13 @@ _ₑˣ : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → Γ env → val ((Γ)ˣ)
 -- Now showing Lemma 8.1 - I don't like the way I have proved it
 %<*lookup-rec1>
 \begin{code}
-lookupₑ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → (x : Fin n) → comb (((Γ)ˣ) ↝ (lookup Γ x))
+lookupₑ : ∀{n : ℕ}{x : Fin n}{b : 𝕓}  → (Γ : Vec 𝕓 n) →  (Γ [ x ]= b) → comb (((Γ)ˣ) ↝ b)
 \end{code}
 %</lookup-rec1>
 
 %<*lookup-rec2>
 \begin{code}
-lookupₑ (b ∷ Γ) zero = sndA
+lookupₑ (b ∷ Γ) here = sndA
 \end{code}
 %</lookup-rec2>
 
@@ -55,7 +55,7 @@ lookupₑ (b ∷ Γ) zero = sndA
 %<*lookup-rec>
 \begin{code}
 
-lookupₑ (b ∷ Γ) (suc m) = (first (lookupₑ Γ m)) ⋙ fstA
+lookupₑ (b ∷ Γ) (there m) = (first (lookupₑ Γ m)) ⋙ fstA
 
 \end{code}
 %</lookup-rec>
@@ -103,14 +103,15 @@ T₁ {Γ = γ} (ₑcase e ₑL e₁ ₑR e₂)  =
 \end{code}
 %</T1-case>
 
+{-
 -- Lemma 8.2 -- T₁ preserves semantics
 
 %<*lookup-proof>
 \begin{code}
-var-proof : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → (ρ : Γ env)
-                → (x : Fin n) → ((_[_]) ρ x) ≡ ((lookupₑ Γ x) [ ((ρ)ₑˣ) ]ᵃ)
-var-proof (ρ +ₑ v) zero = refl
-var-proof (ρ +ₑ v) (suc n) = var-proof ρ n
+var-proof : ∀{n : ℕ}{Γ : Vec 𝕓 n}{x : Fin n}{b : 𝕓} → (ρ : Γ env) → (m : (Γ [ x ]= b))
+                       → ((_[_]) ρ m) ≡ ((lookupₑ Γ m) [ ((ρ)ₑˣ) ]ᵃ)
+var-proof (ρ +ₑ v) here = refl
+var-proof (ρ +ₑ v) (there m)  = var-proof ρ m
 \end{code}
 %</lookup-proof>
 
@@ -159,3 +160,5 @@ T₁-proof ρ (ₑcase e ₑL e₁ ₑR e₂) with (evalₑ ρ e) | inspect (eva
 \end{code}
 
 %</T1-proof-case>
+
+-}
