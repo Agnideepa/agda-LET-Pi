@@ -4,7 +4,10 @@ open import Data.Nat using (ℕ ; suc ; zero; _+_)
 open import Data.Vec using (Vec ; [] ; _∷_ ; _[_]=_ ; here ; there ; lookup; _++_)
 open import Data.Fin using (Fin; zero; suc)
 open import Languages.Let
-open import Languages.PiTyped using (𝕓 ; _×_ ; _+_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; bool)
+open import Languages.MLPi
+open import Translations.T1
+open import Translations.T2
+open import Languages.PiTyped using (𝕓 ; _×_ ; _+_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; bool; _↔_ )
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
 
@@ -117,3 +120,38 @@ test = evalₑ ((ε +ₑ (left [])) +ₑ (right [])) (not (and (varₑ here) (or
 
 lemma : evalₑ ((ε +ₑ (left [])) +ₑ (right [])) (not (and (varₑ here) (or (varₑ (there here)) (varₑ (there here))))) ≡ right []
 lemma = refl
+
+full-adder-test : val (adder-res 4)
+full-adder-test = evalₑ ((ε +ₑ ([ ([ ([ (right []) , (right []) ]) , (right []) ]) , (right []) ])) +ₑ ([ ([ ([ (right []) , (left []) ]) , (right []) ]) , (left []) ]))  (full-adder-wrapper 4)
+
+not-test : (bool ∷ []) ⊢exp∶ bool
+not-test = ₑcase (varₑ here) ₑL (leftₑ []ₑ) ₑR (rightₑ []ₑ)
+
+not-test-translate : comb ((𝟙 × bool) ↝ bool)
+not-test-translate = T₁ (not-test)
+
+not-test-translate1 : (heap(not-test-translate) × (𝟙 × bool)) ↔ (garbage(not-test-translate) × bool)
+not-test-translate1 = T₂ (not-test-translate)
+
+fadd1 : comb (((adder-env 5)ˣ) ↝ (adder-res 5))
+fadd1 = T₁ (full-adder-wrapper 5)
+
+and1 : comb (((bool-env 256)ˣ) ↝ bool)
+and1 = T₁ (and-gate 256)
+
+max : ℕ → ℕ → ℕ
+max zero zero = zero
+max m zero = m
+max zero m = m
+max (suc m) (suc n) = suc (max m n)
+
+size : 𝕓 → ℕ
+size 𝟙 = 0
+size (b₁ 𝕓.+ b₂) = suc (max (size b₁) (size b₂))
+size (b₁ × b₂) = size(b₁) Data.Nat.+ size(b₂)
+
+--fadd2 : ((heap(fadd1)) × ((adder-env 2)ˣ)) ↔ ((garbage(fadd1)) × (adder-res 2))
+--fadd2 = T₂ (fadd1)
+
+res1 : ℕ
+res1 = size(heap(and1))
