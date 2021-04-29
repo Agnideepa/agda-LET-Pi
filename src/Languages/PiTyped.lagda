@@ -134,7 +134,7 @@ assocl⁺ [ right (right v₃) ]ᶠ = right v₃
 assocr⁺ [ left (left v₁) ]ᶠ = left v₁
 assocr⁺ [ left (right v₂) ]ᶠ = right (left v₂)
 assocr⁺ [ right v₃ ]ᶠ = right (right v₃)
-unite [ ([ unit , v ]) ]ᶠ = v
+unite [ ([ [] , v ]) ]ᶠ = v
 uniti [ v ]ᶠ = [ [] , v ]
 assoclˣ [ ([ v₁ , [ v₂ , v₃ ] ]) ]ᶠ = [ [ v₁ , v₂ ] , v₃ ]
 assocrˣ [ ([ [ v₁ , v₂ ] , v₃ ]) ]ᶠ = [ v₁ , [ v₂ , v₃ ] ]
@@ -172,7 +172,7 @@ assocr⁺ [ right (right v₃) ]ᵇ = right v₃
 assocl⁺ [ left (left v₁) ]ᵇ = left v₁
 assocl⁺ [ left (right v₂) ]ᵇ = right (left v₂)
 assocl⁺ [ right v₃ ]ᵇ = right (right v₃)
-uniti [ ([ unit , v ]) ]ᵇ = v
+uniti [ ([ [] , v ]) ]ᵇ = v
 unite [ v ]ᵇ = [ [] , v ]
 assocrˣ [ ([ v₁ , [ v₂ , v₃ ] ]) ]ᵇ = [ [ v₁ , v₂ ] , v₃ ]
 assoclˣ [ ([ [ v₁ , v₂ ] , v₃ ]) ]ᵇ = [ v₁ , [ v₂ , v₃ ] ]
@@ -398,22 +398,35 @@ lemma-2 (symm c) v = lemma-3 c v
 
 -- Boolean type definition
 bool : 𝕓
-bool = 𝟙 + 𝟙
+true : val bool
+false : val bool
+
+\end{code}
+%<*bool-encode>
+\begin{code}
+bool = 𝟙 + 𝟙 ; true = right [] ; false = left []
+\end{code}
+%</bool-encode>
+\begin{code}
 
 -- Defining the AND function in the meta-language - not meant to be reversible
-AND : val bool → val bool → val bool
-AND (right []) (right []) = right []
-AND (right []) (left []) = right []
-AND (left []) (right []) = right []
-AND (left []) (left []) = left []
+NAND : val bool → val bool → val bool
+NAND (right []) (right []) = left []
+NAND (right []) (left []) = right []
+NAND (left []) (right []) = right []
+NAND (left []) (left []) = right []
 
 -- Boolean NOT function
 NOT : bool ↔ bool
 NOT = swap⁺
 
--- If c function - one-armed if function
+
+\end{code}
+%<*toffoli>
+\begin{code}
+-- Function to generate if c for any appropriate combinator c
 if : ∀{b} → b ↔ b → (bool × b) ↔ (bool × b)
-if c = distrib > (((id × c) + id) > factor)
+if c = distrib > ((id + (id × c)) > factor)
 
 -- Defining cnot
 cnot : (bool × bool) ↔ (bool × bool)
@@ -424,7 +437,12 @@ Toffoli-gate : (bool × (bool × bool)) ↔ (bool × (bool × bool))
 Toffoli-gate = if cnot
 
 -- Proof that gate works as expected
-Toffoli-proof : ∀{v₁ v₂ : val bool} → Toffoli-gate [ [ v₁ , [ v₂ , (right []) ] ] ]ᶠ ≡ [ v₁ , [ v₂ , (AND v₁ v₂) ] ]
+Toffoli-proof : ∀{v₁ v₂ : val bool} →
+                   Toffoli-gate [ [ v₁ , [ v₂ , (right []) ] ] ]ᶠ ≡ [ v₁ , [ v₂ , (NAND v₁ v₂) ] ]
+\end{code}
+%</toffoli>
+\begin{code}
+
 Toffoli-proof {v₁ = (right [])} {v₂ = (right [])} = refl
 Toffoli-proof {v₁ = (right [])} {v₂ = (left [])} = refl
 Toffoli-proof {v₁ = (left [])} {v₂ = (right [])} = refl

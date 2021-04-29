@@ -7,7 +7,7 @@ open import Data.Nat using (ℕ)
 open import Languages.MLPi
 open import Languages.Let
 open import Relation.Binary.PropositionalEquality using (_≡_ ; refl ; sym ; cong ; inspect ; [_] ; trans)
-open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; _[_]ᶠ ; swapˣ ; distrib ; id )
+open import Languages.PiTyped using (𝕓 ; _+_ ; _×_ ; 𝟙 ; val ; [] ; [_,_] ; left ; right ; _[_]ᶠ ; swapˣ ; distrib ; uniti; factor; id )
 \end{code}
 
 %<*Type-env-translate1>
@@ -99,7 +99,7 @@ T₁ {Γ = γ} (ₑlet e₁ ₑin e₂)  = (clone ((γ)ˣ)) ⋙ ((second (T₁ e
 \begin{code}
 T₁ {Γ = γ} (ₑcase e ₑL e₁ ₑR e₂)  =
             ((clone ((γ)ˣ)) ⋙ ((first (T₁ e)) ⋙ ((arr distrib) ⋙
-                      ((arr swapˣ) ⊕ (arr swapˣ))))) ⋙ (((T₁ e₁) ⊕ (T₁ e₂)) ⋙ join)
+                      ((((arr swapˣ) ⋙ (T₁ e₁)) ⋙ (arr uniti)) ⊕ ((((arr swapˣ) ⋙ (T₁ e₂)) ⋙ (arr uniti))))))) ⋙ ((arr factor) ⋙ sndA)
 \end{code}
 %</T1-case>
 

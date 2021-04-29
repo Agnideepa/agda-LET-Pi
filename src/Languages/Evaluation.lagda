@@ -1,3 +1,4 @@
+\begin{code}
 module Languages.Evaluation where
 
 open import Data.Nat using (ℕ ; suc ; zero; _+_)
@@ -25,28 +26,31 @@ replace-var zero {Γ₁ = []} x = (there x)
 replace-var (suc m) {Γ₁ = x₁ ∷ Γ₁'} here = here
 replace-var (suc m) {Γ₁ = x₁ ∷ Γ₁'} (there x) = there (replace-var m x)
 
-replace : ∀{n : ℕ} → ∀(m : ℕ) → {Γ₁ : Vec 𝕓 m}{Γ₂ : Vec 𝕓 n}{b b' : 𝕓} → (Γ₁ ++ Γ₂) ⊢exp∶ b → ((Γ₁ ++ (b' ∷ Γ₂))) ⊢exp∶ b
+\end{code}
+%<*replace>
+\begin{code}
+replace : ∀{n : ℕ} → ∀(m : ℕ) → {Γ₁ : Vec 𝕓 m}{Γ₂ : Vec 𝕓 n}{b b' : 𝕓}
+                             → (Γ₁ ++ Γ₂) ⊢exp∶ b → ((Γ₁ ++ (b' ∷ Γ₂))) ⊢exp∶ b
+replace m (fstₑ e) = fstₑ (replace m e)
+replace m {Γ₂ = Γ₂} (ₑlet e₁ ₑin e₂) =
+               ₑlet (replace m e₁) ₑin (replace (suc m) {Γ₂ = Γ₂} e₂)
+\end{code}
+%</replace>
+
+\begin{code})
 replace m []ₑ = []ₑ
 replace m (leftₑ e) = leftₑ (replace m e)
 replace m (rightₑ e) = rightₑ (replace m e)
-replace m (fstₑ e) = fstₑ (replace m e)
 replace m (sndₑ e) = sndₑ (replace m e)
 replace m (varₑ x) = varₑ (replace-var m x)
-replace m {Γ₂ = Γ₂} (ₑlet e₁ ₑin e₂) = ₑlet (replace m e₁) ₑin (replace (suc m) {Γ₂ = Γ₂} e₂)
 replace m (⟨ e₁ , e₂ ⟩ₑ) = ⟨ (replace m e₁) , (replace m e₂) ⟩ₑ
 replace m {Γ₂ = Γ₂} (ₑcase e ₑL e₁ ₑR e₂) = ₑcase (replace m e) ₑL (replace (suc m) {Γ₂ = Γ₂} e₁) ₑR (replace (suc m) {Γ₂ = Γ₂} e₂)
 
 not : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
 not e = ₑcase e ₑL (rightₑ []ₑ) ₑR (leftₑ []ₑ)
 
-and : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
-and e₁ e₂ = ₑcase e₁ ₑL (leftₑ []ₑ) ₑR (replace zero {Γ₁ = []} e₂)
-
 or : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
 or e₁ e₂ = ₑcase e₁ ₑL (replace zero {Γ₁ = []} e₂) ₑR (rightₑ []ₑ)
-
-xor : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
-xor e₁ e₂ = or (and e₁ (not e₂)) (and (not e₁) e₂)
 
 -- OR gate with n inputs
 or-gate : ∀(n : ℕ) → (bool-env n) ⊢exp∶ bool
@@ -54,9 +58,23 @@ or-gate zero = leftₑ []ₑ
 or-gate (suc n) = or (varₑ here) (replace zero {Γ₁ = []} (or-gate n))
 
 -- AND gate with n inputs
+\end{code}
+%<*and>
+\begin{code}
+and : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
+and e₁ e₂ = ₑcase e₁ ₑL (leftₑ []ₑ) ₑR (replace zero {Γ₁ = []} e₂)
+
 and-gate : ∀(n : ℕ) → (bool-env n) ⊢exp∶ bool
 and-gate zero = rightₑ []ₑ
 and-gate (suc n) = and (varₑ here) (replace zero {Γ₁ = []} (and-gate n))
+\end{code}
+%</and>
+
+\begin{code})
+
+
+xor : ∀{n : ℕ}{Γ : Vec 𝕓 n} → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool → Γ ⊢exp∶ bool
+xor e₁ e₂ = or (and e₁ (not e₂)) (and (not e₁) e₂)
 
 -- XOR gate with n inputs
 xor-gate : ∀(n : ℕ) → (bool-env n) ⊢exp∶ bool
@@ -124,20 +142,28 @@ lemma = refl
 full-adder-test : val (adder-res 4)
 full-adder-test = evalₑ ((ε +ₑ ([ ([ ([ (right []) , (right []) ]) , (right []) ]) , (right []) ])) +ₑ ([ ([ ([ (right []) , (left []) ]) , (right []) ]) , (left []) ]))  (full-adder-wrapper 4)
 
-not-test : (bool ∷ []) ⊢exp∶ bool
-not-test = ₑcase (varₑ here) ₑL (leftₑ []ₑ) ₑR (rightₑ []ₑ)
+\end{code}
+
+%<*not>
+\begin{code}
+NOT-test : (bool ∷ []) ⊢exp∶ bool
+NOT-test = ₑcase (varₑ here) ₑL (rightₑ []ₑ) ₑR (leftₑ []ₑ)
+\end{code}
+%</not>
+
+\begin{code}
 
 not-test-translate : comb ((𝟙 × bool) ↝ bool)
-not-test-translate = T₁ (not-test)
+not-test-translate = T₁ (NOT-test)
 
 not-test-translate1 : (heap(not-test-translate) × (𝟙 × bool)) ↔ (garbage(not-test-translate) × bool)
 not-test-translate1 = T₂ (not-test-translate)
 
-fadd1 : comb (((adder-env 5)ˣ) ↝ (adder-res 5))
-fadd1 = T₁ (full-adder-wrapper 5)
+fadd1 : comb (((adder-env 1)ˣ) ↝ (adder-res 1))
+fadd1 = T₁ (full-adder-wrapper 1)
 
-and1 : comb (((bool-env 256)ˣ) ↝ bool)
-and1 = T₁ (and-gate 256)
+and1 : comb (((bool-env 128)ˣ) ↝ bool)
+and1 = T₁ (or-gate 128)
 
 max : ℕ → ℕ → ℕ
 max zero zero = zero
@@ -146,12 +172,23 @@ max zero m = m
 max (suc m) (suc n) = suc (max m n)
 
 size : 𝕓 → ℕ
+\end{code}
+
+%<*size>
+\begin{code}
 size 𝟙 = 0
-size (b₁ 𝕓.+ b₂) = suc (max (size b₁) (size b₂))
+size (b₁ + b₂) = suc (max (size b₁) (size b₂))
 size (b₁ × b₂) = size(b₁) Data.Nat.+ size(b₂)
+\end{code}
+%</size>
+
+\begin{code})
 
 --fadd2 : ((heap(fadd1)) × ((adder-env 2)ˣ)) ↔ ((garbage(fadd1)) × (adder-res 2))
 --fadd2 = T₂ (fadd1)
 
 res1 : ℕ
-res1 = size(heap(and1))
+res1 = size(heap(fadd1))
+
+res2 : val bool
+res2 = evalₑ (ε +ₑ (left [])) NOT-test
