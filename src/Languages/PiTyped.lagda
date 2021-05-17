@@ -6,24 +6,34 @@ open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 
 -- Type universe -- should combinator types be separate from value types?
-
+\end{code}
+%<*types>
+\begin{code}
 data 𝕓 : Set where
   𝟙 : 𝕓
   _×_ _+_ : 𝕓 → 𝕓 → 𝕓
-  
+\end{code}
+%</types>
+\begin{code}
 -- Defining values and their types together
 
+\end{code}
+%<*values>
+\begin{code}
 data val : 𝕓 → Set where
   [] : val 𝟙
-  [_,_] : ∀{b₁ b₂}
-        → val b₁
-        → val b₂
-       -----------
-        → val (b₁ × b₂)
   left : ∀{b₁ b₂}
         → val b₁
        -----------
         → val (b₁ + b₂)
+\end{code}
+%</values>
+\begin{code}
+  [_,_] : ∀{b₁ b₂}
+        → val b₁
+        → val b₂
+       ---------------------------------------
+        → val (b₁ × b₂)
   right : ∀{b₁ b₂}
         → val b₂
        -----------
@@ -69,9 +79,8 @@ data _↔_ : 𝕓 → 𝕓 → Set where
 %<*pi-times>
 \begin{code}
   _×_ : ∀{b₁ b₂ b₃ b₄}
-        → b₁ ↔ b₂
-        → b₃ ↔ b₄
-        ----------------
+        → b₁ ↔ b₂            → b₃ ↔ b₄
+        ---------------------------------------
         → (b₁ × b₃) ↔ (b₂ × b₄)
 \end{code}
 %</pi-times>
@@ -121,13 +130,6 @@ swap⁺ [ left v ]ᶠ = right v
 swap⁺ [ right v ]ᶠ = left v
 \end{code}
 
-%<*pi-prim>
-\begin{code}
-swapˣ [ ([ v₁ , v₂ ]) ]ᶠ = [ v₂ , v₁ ]
-assocl⁺ [ left v₁ ]ᶠ = left (left v₁)
-\end{code}
-%</pi-prim>
-
 \begin{code}
 assocl⁺ [ right (left v₂) ]ᶠ = left (right v₂)
 assocl⁺ [ right (right v₃) ]ᶠ = right v₃
@@ -148,6 +150,8 @@ id [ v ]ᶠ = v
 
 %<*pi-comp>
 \begin{code}
+swapˣ [ ([ v₁ , v₂ ]) ]ᶠ = [ v₂ , v₁ ]
+assocl⁺ [ left v₁ ]ᶠ = left (left v₁)
 (c₁ + c₂) [ left v₁ ]ᶠ = left (c₁ [ v₁ ]ᶠ)
 (c₁ + c₂) [ right v₂ ]ᶠ = right (c₂ [ v₂ ]ᶠ)
 (c₁ × c₂) [ ([ v₁ , v₂ ]) ]ᶠ = [ (c₁ [ v₁ ]ᶠ) , (c₂ [ v₂ ]ᶠ) ]
@@ -354,10 +358,19 @@ lemma-2 (symm c) v = lemma-3 c v
 \end{code}
 %</left-rev>
 
+%<*right-rev>
 \begin{code}
-Π-rev-proof (c₁ + c₂) (right v₂) = cong right (Π-rev-proof c₂ v₂)
-
+Π-rev-proof (c₁ + c₂) (right v₂) = begin
+                          ((c₁ + c₂)† [ ((c₁ + c₂) [ right v₂ ]ᶠ) ]ᶠ)
+                       ≡⟨ refl ⟩
+                         ((c₁ + c₂)† [ (right (c₂ [ v₂ ]ᶠ)) ]ᶠ )
+                       ≡⟨ refl ⟩
+                          (right ((c₂ †) [ (c₂ [ v₂ ]ᶠ) ]ᶠ))  
+                       ≡⟨ cong right (Π-rev-proof c₂ v₂) ⟩
+                          (right v₂)
+                       ∎
 \end{code}
+%</right-rev>
 
 %<*product-rev>
 \begin{code}
@@ -373,10 +386,10 @@ lemma-2 (symm c) v = lemma-3 c v
 Π-rev-proof (c₁ > c₂) v = begin
                           (c₁ > c₂)† [ (c₁ > c₂) [ v ]ᶠ ]ᶠ                             -- (a)
                        ≡⟨⟩
-                      -- Expanding (c₁ > c₂)† using the definition of _†
+                      -- Expanding (c₁ > c₂)† using definition of _†
                           ((c₂ †) > (c₁ †)) [ (c₁ > c₂) [ v ]ᶠ ]ᶠ                      -- (b)
                        ≡⟨⟩
-                      -- Expanding (c₁ > c₂) [ v ]ᶠ using the definition of _[_]ᶠ
+                      -- Expanding (c₁ > c₂) [ v ]ᶠ using definition of _[_]ᶠ
                           ((c₂ †) > (c₁ †)) [ c₂ [ c₁ [ v ]ᶠ ]ᶠ ]ᶠ                     -- (c)   
                        ≡⟨⟩
                       -- Again using _[_]ᶠ to expand (c)

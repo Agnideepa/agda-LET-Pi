@@ -40,7 +40,7 @@ _ₑˣ : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → Γ env → val ((Γ)ˣ)
 -- Now showing Lemma 8.1 - I don't like the way I have proved it
 %<*lookup-rec1>
 \begin{code}
-lookupₑ : ∀{n : ℕ}{x : Fin n}{b : 𝕓}  → (Γ : Vec 𝕓 n) →  (Γ [ x ]= b) → comb (((Γ)ˣ) ↝ b)
+lookupₑ : ∀{n : ℕ}{x : Fin n}{b : 𝕓}  → (Γ : Vec 𝕓 n) →  (Γ [ x ]= b) → ((Γ)ˣ) ↝ b
 \end{code}
 %</lookup-rec1>
 
@@ -54,9 +54,7 @@ lookupₑ (b ∷ Γ) here = sndA
 
 %<*lookup-rec>
 \begin{code}
-
 lookupₑ (b ∷ Γ) (there m) = (first (lookupₑ Γ m)) ⋙ fstA
-
 \end{code}
 %</lookup-rec>
 
@@ -64,7 +62,7 @@ lookupₑ (b ∷ Γ) (there m) = (first (lookupₑ Γ m)) ⋙ fstA
 
 %<*T1>
 \begin{code}
-T₁ : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → ∀{b : 𝕓} → Γ ⊢exp∶ b → comb (((Γ)ˣ) ↝ b)
+T₁ : ∀{n : ℕ} → ∀{Γ : Vec 𝕓 n} → ∀{b : 𝕓} → Γ ⊢exp∶ b → ((Γ)ˣ) ↝ b
 \end{code}
 %</T1>
 
@@ -99,7 +97,9 @@ T₁ {Γ = γ} (ₑlet e₁ ₑin e₂)  = (clone ((γ)ˣ)) ⋙ ((second (T₁ e
 \begin{code}
 T₁ {Γ = γ} (ₑcase e ₑL e₁ ₑR e₂)  =
             ((clone ((γ)ˣ)) ⋙ ((first (T₁ e)) ⋙ ((arr distrib) ⋙
-                      ((((arr swapˣ) ⋙ (T₁ e₁)) ⋙ (arr uniti)) ⊕ ((((arr swapˣ) ⋙ (T₁ e₂)) ⋙ (arr uniti))))))) ⋙ ((arr factor) ⋙ sndA)
+                      ((((arr swapˣ) ⋙ (T₁ e₁)) ⋙ (arr uniti)) ⊕
+                              ((((arr swapˣ) ⋙ (T₁ e₂)) ⋙ (arr uniti))))))) ⋙
+                                       ((arr factor) ⋙ sndA)
 \end{code}
 %</T1-case>
 
@@ -124,8 +124,7 @@ var-proof (ρ +ₑ v) (there m)  = var-proof ρ m
 %<*T1-proof>
 \begin{code}
 T₁-proof : ∀{n : ℕ}{Γ : Vec 𝕓 n}{b : 𝕓}
-                 → (ρ : Γ env) → (e : Γ ⊢exp∶ b)
-                       → evalₑ ρ e ≡ (T₁ e) [ ((ρ)ₑˣ) ]ᵃ
+                 → (ρ : Γ env) → (e : Γ ⊢exp∶ b) → evalₑ ρ e ≡ (T₁ e) [ ((ρ)ₑˣ) ]ᵃ
 \end{code}
 %</T1-proof>
 
@@ -153,12 +152,12 @@ T₁-proof ρ (sndₑ e) with (evalₑ ρ e) | inspect (evalₑ ρ) e
 %<*T1-proof-case>
 \begin{code}
 T₁-proof ρ (ₑcase e ₑL e₁ ₑR e₂) with (evalₑ ρ e) | inspect (evalₑ ρ) e
+...                                | right v | [ pf ]
+       rewrite (clone-proof ((ρ)ₑˣ)) | (T₁-proof (ρ +ₑ v) e₂) 
+                                     | (trans (sym (T₁-proof ρ e)) pf) = refl
+\end{code}
+%</T1-proof-case>
+\begin{code}
 ...                                | left v | [ pf ]
        rewrite (clone-proof ((ρ)ₑˣ)) | (T₁-proof (ρ +ₑ v) e₁) | (trans (sym (T₁-proof ρ e)) pf) = refl
-...                                | right v | [ pf ]
-       rewrite (clone-proof ((ρ)ₑˣ)) | (T₁-proof (ρ +ₑ v) e₂) | (trans (sym (T₁-proof ρ e)) pf) = refl
-\end{code}
 
-%</T1-proof-case>
-
--}

@@ -49,7 +49,8 @@ data _⊢exp∶_ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → 𝕓 → Set where
 
 %<*debruijn>
 \begin{code}
-  varₑ : ∀{n : ℕ}{Γ : Vec 𝕓 n}{x : Fin n}{b : 𝕓}
+  varₑ : ∀{n : ℕ}{b : 𝕓}
+            {Γ : Vec 𝕓 n}{x : Fin n}
         → Γ [ x ]= b
         ----------
         → Γ ⊢exp∶ b
@@ -85,7 +86,8 @@ data _⊢exp∶_ : ∀{n : ℕ} → ∀(Γ : Vec 𝕓 n) → 𝕓 → Set where
 
 %<*case-example>
 \begin{code}
-  ₑcase_ₑL_ₑR_ : ∀{n : ℕ}{b₁ b₂ b₃ : 𝕓}{Γ : Vec 𝕓 n}
+  ₑcase_ₑL_ₑR_ : ∀{n : ℕ}{b₁ b₂ b₃ : 𝕓}
+                            {Γ : Vec 𝕓 n}
         → Γ ⊢exp∶ (b₁ + b₂)
         → (b₁ ∷ Γ) ⊢exp∶ b₃
         → (b₂ ∷ Γ) ⊢exp∶ b₃
@@ -113,6 +115,7 @@ evalₑ _ []ₑ = []
 %<*left>
 \begin{code}
 evalₑ ρ (leftₑ e) = left (evalₑ ρ e)
+evalₑ ρ (ₑlet e₁ ₑin e₂) = evalₑ (ρ +ₑ (evalₑ ρ e₁)) e₂
 \end{code}
 %</left>
 
@@ -120,12 +123,6 @@ evalₑ ρ (leftₑ e) = left (evalₑ ρ e)
 evalₑ ρ (rightₑ e) = right (evalₑ ρ e)
 evalₑ ρ (varₑ x) = ρ [ x ]
 \end{code}
-
-%<*let>
-\begin{code}
-evalₑ ρ (ₑlet e₁ ₑin e₂) = evalₑ (ρ +ₑ (evalₑ ρ e₁)) e₂
-\end{code}
-%</let>
 
 \begin{code}
 evalₑ ρ (fstₑ e) with (evalₑ ρ e)

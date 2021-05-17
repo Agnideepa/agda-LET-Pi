@@ -1,3 +1,4 @@
+\begin{code}
 module Languages.PiCirc where
 
 open import Data.Empty
@@ -29,10 +30,20 @@ data 𝕓 : ℕ → Set where
          → Fin n
          ----------
          → 𝕓 n
+
+\end{code}
+
+%<*rec>
+\begin{code}
   μ_ : ∀{n : ℕ}
        → 𝕓 (suc n)
        ------------
        → 𝕓 n
+\end{code}
+%</rec>
+
+\begin{code}
+
 
 -- THE FOLLOWING CODE IS FROM https://github.com/zmthy/recursive-types WITH VERY SLIGHT MODIFICATIONS TO MATCH OUR NOTATION
 
@@ -180,7 +191,15 @@ _[_]ᶠ : {n : ℕ}{b b' : 𝕓 n} → b ⇌ b' → val n b → val n b'
 -- _[_]ᵇ : {n : ℕ}{b b' : 𝕓 n} → b ⇌ b' → val n b' → val n b
 
 {-# TERMINATING #-}
+\end{code}
+
+%<*loop>
+\begin{code}
 loop : {n : ℕ}{b₁ b₂ b₃ : 𝕓 n} → (b₁ + b₂) ⇌ (b₁ + b₃) → val n (b₁ + b₃) → val n b₃
+\end{code}
+%</loop>
+
+\begin{code}
 loop c (left v) = loop c (c [ left v ]ᶠ)
 loop c (right v) = v
 
@@ -328,11 +347,20 @@ unfold-for-nat = unfold
 just : {b : 𝕓 0} → b ⇌ (𝟙 + b)
 just = trace (((unfold-for-nat > swap⁺) + id) > assocr⁺)
 
-add1 : nat ⇌ nat
-add1 = just > fold
+add₁ : nat ⇌ nat
+
+\end{code}
+
+%<*succ>
+\begin{code}
+add₁ = just > fold
+\end{code}
+%</succ>
+
+\begin{code}
 
 add : (nat × nat) ⇌ (nat × nat)
-add = e-func add1
+add = e-func add₁
 
 sub : (nat × nat) ⇌ (nat × nat)
 sub = add †
@@ -357,7 +385,7 @@ sub-val : ℕ
 sub-val = decode (snd(sub-res))
 
 sub1 : nat ⇌ nat
-sub1 = add1 †
+sub1 = add₁ †
 
 testAdd : val 0 nat
 testAdd = sub1 [(encode 7)]ᶠ
@@ -367,6 +395,49 @@ introR = just
 
 introF : 𝟙 ⇌ bool
 introF = just > not
+
+injectR : ∀{b : 𝕓 0} → b ⇌ (b + b)
+injectR = uniti > ((introR × id) > (distrib > (unite + unite)))
+
+introZ : 𝟙 ⇌ nat
+introZ = trace (swap⁺ > (fold > injectR))
+
+0-test : val 0 nat
+0-test = introZ [ [] ]ᶠ
+
+-------------------------------START OF PROOF OF TURING-COMPLETENESS-----------------------------------------
+
+-- SHOWING HOW TO IMPLEMENT PRIMITIVE RECURSION
+
+-- This is how to encode (x₁,x₂,...) as arguments - we represent them as list encoded using products
+arg-type : ℕ → 𝕓 0
+arg-type zero = 𝟙
+arg-type (suc zero) = nat
+arg-type (suc n) = (arg-type n) × nat
+
+-- This is how to encode ((x₁,x₂,...),h(X,y))
+h-arg-type : ℕ → 𝕓 0
+h-arg-type n = (arg-type n) × nat
+
+-- This is the body of the for loop
+prim-rec : ∀{n} → (nat × (h-arg-type n)) ⇌ (nat × (h-arg-type n)) → ((nat × (nat × (h-arg-type n))) + (𝟙 × (nat × (h-arg-type n)))) ⇌ ((nat × (nat × (h-arg-type n))) + (𝟙 × (nat × (h-arg-type n))))
+prim-rec g = factor > (((swap⁺ > fold) × id) > ((assoclˣ > ((swapˣ × id) > assocrˣ)) > (((unfold > swap⁺) × id) > (distrib > (((id × g) > (assoclˣ > ((swapˣ × id) > assocrˣ))) + id)))))
+
+-- Finally we have the function h built up using primitive recursion
+h-func : ∀{n} → (h-arg-type n) ⇌ (h-arg-type n) → (nat × (h-arg-type n)) ⇌ (nat × (h-arg-type n)) → (nat × (h-arg-type n)) ⇌ (nat × (h-arg-type n))
+h-func f g  = ((uniti × f) > assocrˣ) > ((trace (prim-rec g)) > (assoclˣ > (unite × id)))
+
+-- END OF PRIMITIVE RECURSION IMPLEMENTATION
+
+m-arg-type : ℕ → 𝕓 0
+m-arg-type n = nat × (arg-type n)
+
+minimize : ∀{n} → (nat × (arg-type n)) ⇌ (nat × (nat × (arg-type n))) → ((nat × (arg-type n)) + (𝟙 × (arg-type n))) ⇌ ((nat × (arg-type n)) + (nat × (arg-type n)))
+minimize k = factor > (((swap⁺ > fold) × id) > (k > ((((unfold > swap⁺) × id) > distrib) > (((add₁ × id) > (k †)) + unite))))
+
+minimization : ∀{n} → (nat × (arg-type n)) ⇌ (nat × (nat × (arg-type n))) → (arg-type n) ⇌ (nat × (arg-type n))
+minimization k = uniti > (trace (minimize k))
+
 
 {-# TERMINATING #-}
 φ : (b : 𝕓 0) → val 0 b
@@ -388,8 +459,16 @@ testCreate : val 0 nat
 testCreate = (createConst (encode 7)) [ [] ]ᶠ
 
 -- The type of a list is not allowed to recursively reference that same type
-_List : 𝕓 0 → 𝕓 0
-b List = μ (𝟙 + ((inc b) × (ref zero)))
+{-increaseRef : ∀{n : ℕ} →  𝕓 n → 𝕓 (suc n)
+increaseRef 𝟙 = 𝟙
+increaseRef (b + b'') = increaseRef b + increaseRef b''
+increaseRef (b × b'') = increaseRef b × increaseRef b''
+increaseRef (μ b) = μ (increaseRef (b))
+increaseRef (ref x) = ref x-}
+-- We need Fin n -> Fin suc n and looping versions of those for types
+
+--natList : 𝕓 0
+--natList = μ (𝟙 + (nat × (ref zero)))
 
 --unfold-for-lists : {b : 𝕓 0} → (b List) ⇌ (𝟙 + (b List))
 --unfold-for-lists = unfold

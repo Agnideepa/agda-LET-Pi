@@ -9,8 +9,8 @@ open import Data.Product using (Σ ; _,_)
 \end{code}
 %<*heap-decl>
 \begin{code}
-heap : ∀{b b'} → comb (b ↝ b') → 𝕓
-garbage : ∀{b b'} → comb (b ↝ b') → 𝕓
+heap : ∀{b b'} → b ↝ b' → 𝕓
+garbage : ∀{b b'} → b ↝ b' → 𝕓
 \end{code}
 %</heap-decl>
 \begin{code}
@@ -52,7 +52,7 @@ garbage {b' = b₃ + b₄} (a₁ ⊕ a₂) = (((garbage a₁) × (heap a₂)) ×
 \end{code}
 %<*T2-decl>
 \begin{code}
-T₂ : ∀{b₁ b₂} → (c : comb (b₁ ↝ b₂)) → (heap(c) × b₁) ↔ (garbage(c) × b₂)
+T₂ : ∀{b₁ b₂} → (c : (b₁ ↝ b₂)) → (heap(c) × b₁) ↔ (garbage(c) × b₂)
 \end{code}
 %</T2-decl>
 \begin{code}
@@ -84,11 +84,9 @@ T₂ (a₁ ⊕ a₂) = ((swapˣ > distrib) > (((((assoclˣ > ((assoclˣ > ((swap
 
 %<*T2-proof>
 \begin{code}
-
-T₂-proof : ∀{b₁ b₂}(c : comb (b₁ ↝ b₂))(v : val b₁) →
+T₂-proof : ∀{b₁ b₂}(c : (b₁ ↝ b₂))(v : val b₁) →
            Σ (val (garbage(c))) (λ g' →
            ((T₂ c) [ ([ φ(heap(c)) , v ]) ]ᶠ) ≡ ([ g' , (c [ v ]ᵃ) ]))
-
 \end{code}
 %</T2-proof>
 
@@ -100,10 +98,17 @@ T₂-proof (a₁ ⊗ a₂) ([ v₁ , v₂ ]) with (T₂-proof a₁ v₁) | (T₂
 ...                                 | (g₁ , pf₁) | (g₂ , pf₂) rewrite pf₁ | pf₂ = ([ g₁ , g₂ ]) , refl
 T₂-proof (first a) ([ v ,  v' ]) with (T₂-proof a v)
 ...                                 | (g , pf) rewrite pf = g , refl
+\end{code}
+
+%<*t2-sample>
+\begin{code}
 T₂-proof (a₁ ⋙ a₂) v with (T₂-proof a₁ v) | (T₂-proof a₂ (a₁ [ v ]ᵃ))
 ...                     | (g₁ , pf₁) | (g₂ , pf₂) rewrite pf₁ | pf₂ = ([ g₁ , g₂ ]) , refl
 T₂-proof {b₂ = b' + b''} (left a) (left v) with (T₂-proof a v)
 ...                             | (g , pf) rewrite pf = (left ([ g , ([ φ(b') , (left(φ(b'')))]) ])) , refl
+\end{code}
+%</t2-sample>
+\begin{code}
 T₂-proof {b₂ = b' + b''} (left a) (right v) = (right ([ ([ φ(heap(a)) , left(φ(b')) ]) , φ(b'') ])) , refl
 T₂-proof {b₂ = b' + b''} (a₁ ⊕ a₂) (left v₁) with (T₂-proof a₁ v₁)
 ...                                             | (g₁ , pf₁) rewrite pf₁ = (left ([ ([ g₁ , φ(heap(a₂)) ]) , ([ φ(b') , (left (φ(b''))) ]) ])) , refl
